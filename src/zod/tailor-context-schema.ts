@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const TailorContextSchema = z.object({
   active_company: z.string().min(1, 'Company name is required'),
+  active_profile: z.string().min(1, 'Profile name is required').optional(),
   company: z.string().min(1, 'Display company name is required'),
   active_template: z.string().min(1, 'Template name is required'),
   folder_path: z.string().min(1, 'Folder path is required'),

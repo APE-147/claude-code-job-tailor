@@ -187,9 +187,10 @@ const oneLineContextLog = (
   additionalInfo?: string,
 ): void => {
   const fileCount = data.availableFiles.length || 0;
+  const profileInfo = data.activeProfile ? ` • Profile: ${data.activeProfile}` : '';
   const extra = additionalInfo ? ` • ${additionalInfo}` : '';
   logger.success(
-    `${isServerMode ? `Tailor server ready` : 'Tailor context created'} • ${data.company} • ${fileCount} file(s)${extra}`,
+    `${isServerMode ? `Tailor server ready` : 'Tailor context created'} • ${data.company} • ${fileCount} file(s)${profileInfo}${extra}`,
   );
 };
 
@@ -208,6 +209,9 @@ const provideTailorEnvLogs = (data: SetContextSuccess['data'], logger: Logger): 
 
   logger.info(`Tailor context created • ${data.company}`);
   logger.info(`   -Path: ${data.path}`);
+  if (data.activeProfile) {
+    logger.info(`   -Active profile: ${data.activeProfile}`);
+  }
   logger.info(`   -Active template: ${data.activeTemplate}`);
   logger.info(`   -Position: ${data.position || 'Not specified'}`);
   logger.info(`   -Focus: ${data.primaryFocus || 'Not specified'}`);

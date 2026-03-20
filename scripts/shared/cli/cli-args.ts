@@ -8,6 +8,7 @@ export interface CompanyCliArgs {
 
 export interface PdfCliArgs extends CompanyCliArgs {
   document?: string;
+  profile?: string;
 }
 
 /**
@@ -65,6 +66,11 @@ export function parsePdfArgs(): PdfCliArgs {
         short: 'D',
         multiple: false,
       },
+      profile: {
+        type: 'string',
+        short: 'P',
+        multiple: false,
+      },
     },
     strict: true,
     allowPositionals: false,
@@ -73,6 +79,7 @@ export function parsePdfArgs(): PdfCliArgs {
   return {
     company: values.company,
     document: values.document || 'both',
+    profile: values.profile,
   };
 }
 

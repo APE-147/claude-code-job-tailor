@@ -7,6 +7,8 @@ import { DOCUMENT_TYPES } from '@shared/core/config';
 import { loggers } from '@shared/core/logger';
 import { tryCatchAsync } from '@shared/core/functional-utils';
 import type { SuccessResult, ErrorResult } from '@shared/validation/types';
+import { detectLocale } from '@template-core/i18n';
+import { registerFonts } from '@template-core/fonts-register';
 
 export interface GenerateDocumentParams {
   docTypes: (typeof DOCUMENT_TYPES.RESUME | typeof DOCUMENT_TYPES.COVER_LETTER)[];
@@ -117,11 +119,21 @@ const generateSingleDoc = async ({
   outputDir: string;
   companyName: string;
 }): Promise<GeneratedDocument> => {
+  const locale =
+    applicationData.resume?.locale ??
+    detectLocale(applicationData.resume?.name ?? '', applicationData.resume?.title ?? '');
+
+  registerFonts(locale);
+
   const component =
     docType === DOCUMENT_TYPES.RESUME
-      ? React.createElement(theme.components.resume, { data: applicationData.resume ?? undefined })
+      ? React.createElement(theme.components.resume, {
+          data: applicationData.resume ?? undefined,
+          locale,
+        })
       : React.createElement(theme.components.coverLetter, {
           data: applicationData.cover_letter ?? undefined,
+          locale,
         });
 
   const filePath = path.join(outputDir, `${docType}-${companyName}.pdf`);

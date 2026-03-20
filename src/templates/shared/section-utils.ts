@@ -3,7 +3,26 @@ import type {
   CoverLetterSchema,
   ResumeSectionConfig,
   CoverLetterSectionConfig,
+  ResumeVisibilityKey,
 } from '@/types';
+
+const getResumeVisibilityOverride = (
+  data: ResumeSchema | CoverLetterSchema,
+  visibilityKey?: ResumeVisibilityKey,
+): boolean | undefined => {
+  if (!visibilityKey || !('section_visibility' in data)) {
+    return undefined;
+  }
+
+  return data.section_visibility?.[visibilityKey];
+};
+
+export function isResumeVisibilityEnabled(
+  data: ResumeSchema,
+  visibilityKey: ResumeVisibilityKey,
+): boolean {
+  return getResumeVisibilityOverride(data, visibilityKey) !== false;
+}
 
 /**
  * Get all visible resume sections for the given data
@@ -12,7 +31,12 @@ export function getVisibleResumeSections(
   sections: ResumeSectionConfig[],
   data: ResumeSchema,
 ): ResumeSectionConfig[] {
-  return sections.filter((section) => section.isVisible(data)).sort((a, b) => a.order - b.order);
+  return sections
+    .filter((section) => {
+      const isEnabled = getResumeVisibilityOverride(data, section.visibilityKey) !== false;
+      return isEnabled && section.isVisible(data);
+    })
+    .sort((a, b) => a.order - b.order);
 }
 
 /**
@@ -84,7 +108,12 @@ export function getElementVisibility(
   // If section has elements config, check it
   if (section.elements) {
     const element = section.elements.find((e) => e.id === elementId);
-    return element ? element.isVisible(data) : true;
+    if (!element) {
+      return true;
+    }
+
+    const isEnabled = getResumeVisibilityOverride(data, element.visibilityKey) !== false;
+    return isEnabled && element.isVisible(data);
   }
   // Default to visible if no elements config
   return true;

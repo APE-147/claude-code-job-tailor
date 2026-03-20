@@ -6,7 +6,7 @@ import { match } from 'ts-pattern';
 import { generateApplicationData } from '@shared/data/data-generation';
 import { chain, tryCatch } from '@shared/core/functional-utils';
 import { validateAndSetTailorEnvPipeline } from '@shared/validation/tailor-setup-pipeline';
-import { validateYamlFilesAgainstSchemasPipeline } from '@shared/validation/yaml-validation';
+import { validateYamlFilesWithProfilePipeline } from '@shared/validation/yaml-validation';
 import type { Result, SetContextSuccess } from '@shared/validation/types';
 import { parseCliArgs, validateRequiredArg } from '@shared/cli/cli-args';
 import {
@@ -19,10 +19,11 @@ import {
 import { PathHelpers } from '@shared/core/path-helpers';
 import { loggers } from '@shared/core/logger';
 import { handlePipelineError, handlePipelineSuccess } from '@shared/handlers/result-handlers';
+import { loadOptionalProfile } from '@shared/data/profile-loader';
 
 /**
  * Enhanced dev server with tailor data watching
- * Usage: bun run tailor-server -C company-name
+ * Usage: bun run tailor-server -C company-name [-P profile-name|path]
  *
  * This script provides:
  * - Type safety for file operations and process management
@@ -31,7 +32,7 @@ import { handlePipelineError, handlePipelineSuccess } from '@shared/handlers/res
  * - Integration with Bun's native hot reload
  */
 
-const USAGE_MESSAGE = 'Usage: bun run tailor-server -C company-name';
+const USAGE_MESSAGE = 'Usage: bun run tailor-server -C company-name [-P profile-name|path]';
 
 // Parse and validate command-line arguments
 const values = parseCliArgs(
@@ -42,6 +43,11 @@ const values = parseCliArgs(
         short: 'C',
         required: true,
       },
+      P: {
+        type: 'string',
+        short: 'P',
+        required: false,
+      },
     },
   },
   loggers.server,
@@ -49,11 +55,14 @@ const values = parseCliArgs(
 );
 
 const companyName = validateRequiredArg(values.C, 'Company name', loggers.server, USAGE_MESSAGE);
+const profileRef = values.P as string | undefined;
 
 interface WatcherState {
   devServer: ChildProcess;
   fileWatcher?: FSWatcher;
+  profileWatcher?: FSWatcher;
   activeCompany: string;
+  activeProfileRef?: string;
   debounceTimer?: NodeJS.Timeout;
   currentFilename?: string | null;
 }
@@ -67,10 +76,11 @@ class EnhancedDevServer {
   private readonly filesToWatch = TAILOR_YAML_FILES_AND_SCHEMAS;
   private readonly debounceDelay = TIMEOUTS.FILE_WATCH_DEBOUNCE;
 
-  constructor(companyName: string) {
+  constructor(companyName: string, profileRef?: string) {
     this.state = {
       devServer: this.createDevServer(),
       activeCompany: companyName,
+      activeProfileRef: profileRef,
     };
   }
 
@@ -97,7 +107,11 @@ class EnhancedDevServer {
 
   public start(): void {
     // Validate environment using functional pipeline
-    const result = validateAndSetTailorEnvPipeline(this.state.activeCompany, this.filesToWatch);
+    const result = validateAndSetTailorEnvPipeline(
+      this.state.activeCompany,
+      this.filesToWatch,
+      this.state.activeProfileRef,
+    );
 
     // Early exit for validation errors
     if (!result.success) {
@@ -107,6 +121,7 @@ class EnhancedDevServer {
 
     // Initialize services with sequential side effects
     this.createFileWatcher(PathHelpers.getCompanyPath(this.state.activeCompany));
+    this.createProfileWatcher();
     this.setupShutdownHandlers();
     this.onServerReady(result.data);
   }
@@ -128,6 +143,31 @@ class EnhancedDevServer {
       .exhaustive();
   }
 
+  private createProfileWatcher(): void {
+    if (!this.state.activeProfileRef) {
+      return;
+    }
+
+    const profilePath = PathHelpers.getAbsoluteProfilePath(this.state.activeProfileRef);
+    const result = tryCatch(() => {
+      return watch(profilePath, () => {
+        this.regenerateDataWithPipeline(this.state.activeCompany, basename(profilePath));
+      });
+    }, 'Could not set up profile watcher');
+
+    match(result)
+      .with({ success: true }, (r) => {
+        this.state.profileWatcher = r.data;
+        if (!this.compactMode) {
+          loggers.server.info(`Profile watcher initialized: ${basename(profilePath)}`);
+        }
+      })
+      .with({ success: false }, (e) => {
+        loggers.server.error('Failed to create profile watcher', e.error);
+      })
+      .exhaustive();
+  }
+
   /**
    * Set up graceful shutdown handlers
    */
@@ -142,6 +182,10 @@ class EnhancedDevServer {
 
       if (this.state.fileWatcher) {
         this.state.fileWatcher.close();
+      }
+
+      if (this.state.profileWatcher) {
+        this.state.profileWatcher.close();
       }
 
       if (this.state.devServer && !this.state.devServer.killed) {
@@ -232,7 +276,11 @@ class EnhancedDevServer {
     const displayFilename = filename ? basename(filename) : 'file';
 
     return pipe(
-      validateYamlFilesAgainstSchemasPipeline(companyName, this.filesToWatch),
+      loadOptionalProfile(this.state.activeProfileRef),
+      (profileResult) =>
+        chain(profileResult, (profile) =>
+          validateYamlFilesWithProfilePipeline(companyName, this.filesToWatch, profile),
+        ),
       (validationResult) =>
         chain(validationResult, (validatedFiles) =>
           generateApplicationData(companyName, validatedFiles),
@@ -350,5 +398,5 @@ class EnhancedDevServer {
 }
 
 // Start the enhanced dev server with the specified company
-const devServer = new EnhancedDevServer(companyName);
+const devServer = new EnhancedDevServer(companyName, profileRef);
 devServer.start();

@@ -1,37 +1,13 @@
 import React from 'react';
 import { Text, View, StyleSheet } from '@react-pdf/renderer';
-import { tokens } from '@template-core/design-tokens';
+import { useLocale } from '@template-core/locale-context';
+import { RichText } from '@template-core/rich-text';
 import type { ResumeSchema } from '@types';
 
-const { colors, spacing } = tokens.classic;
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.pagePadding,
-  },
-  sectionTitle: {
-    fontFamily: 'Lato Bold',
-    fontSize: 11,
-    color: colors.primary,
-    textTransform: 'uppercase',
-    marginBottom: 0,
-  },
-  summaryText: {
-    fontFamily: 'Lato',
-    fontSize: 10,
-    lineHeight: 1.4,
-    color: colors.darkGray,
-    marginBottom: spacing.pagePadding / 2,
-  },
-  separator: {
-    width: '100%',
-    borderBottom: `1px solid ${colors.separatorGray}`,
-    paddingTop: spacing.pagePadding / 2,
-    marginBottom: spacing.pagePadding / 2,
-  },
-});
-
 const Summary = ({ resume }: { resume: ResumeSchema }) => {
+  const { labels, locale, tokens } = useLocale();
+  const styles = createStyles(tokens, locale);
+
   // Only render if summary exists and is not empty
   if (!resume.summary || resume.summary.trim() === '') {
     return null;
@@ -39,11 +15,44 @@ const Summary = ({ resume }: { resume: ResumeSchema }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>PROFILE</Text>
+      <Text style={styles.sectionTitle}>{labels.profile}</Text>
       <View style={styles.separator} />
-      <Text style={styles.summaryText}>{resume.summary}</Text>
+      <RichText text={resume.summary} style={styles.summaryText} />
     </View>
   );
 };
 
 export default Summary;
+
+const createStyles = (
+  currentTokens: ReturnType<typeof useLocale>['tokens'],
+  locale: ReturnType<typeof useLocale>['locale'],
+) => {
+  const { colors, spacing, typography } = currentTokens;
+
+  return StyleSheet.create({
+    container: {
+      marginBottom: spacing.pagePadding,
+    },
+    sectionTitle: {
+      fontFamily: typography.fonts.bold,
+      fontSize: 11,
+      color: colors.primary,
+      textTransform: locale === 'zh' ? 'none' : 'uppercase',
+      marginBottom: 0,
+    },
+    summaryText: {
+      fontFamily: typography.fonts.regular,
+      fontSize: typography.text.size,
+      lineHeight: typography.text.lineHeight,
+      color: colors.darkGray,
+      marginBottom: spacing.pagePadding / 2,
+    },
+    separator: {
+      width: '100%',
+      borderBottom: `1px solid ${colors.separatorGray}`,
+      paddingTop: spacing.pagePadding / 2,
+      marginBottom: spacing.pagePadding / 2,
+    },
+  });
+};

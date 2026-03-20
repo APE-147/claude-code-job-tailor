@@ -45,6 +45,9 @@ export const PATHS = {
   /** Source YAML files (not company-specific) */
   SOURCES: 'resume-data/sources',
 
+  /** Named profile configuration files */
+  PROFILES: 'resume-data/profiles',
+
   /** Claude Code context file for active company */
   CONTEXT_FILE: '.claude/tailor-context.yaml',
 

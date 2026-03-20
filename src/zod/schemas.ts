@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { TemplateThemeEnum } from './tailor-context-schema';
 
+export const LocaleSchema = z.enum(['en', 'zh']);
+
 export const ExpertiseSchema = z.object({
   resume_title: z.string().min(1),
   skills: z.array(z.string().min(1)).min(1),
@@ -26,6 +28,20 @@ export const ContactDetailsSchema = z.object({
   github: z.string().url().optional(),
 });
 
+export const ResumeSectionVisibilitySchema = z
+  .object({
+    contact: z.boolean(),
+    profile_picture: z.boolean(),
+    summary: z.boolean(),
+    technical_expertise: z.boolean(),
+    soft_skills: z.boolean(),
+    languages: z.boolean(),
+    education: z.boolean(),
+    professional_experience: z.boolean(),
+    independent_projects: z.boolean(),
+  })
+  .partial();
+
 export const ProfessionalExperienceSchema = z.object({
   company: z.string().min(1),
   position: z.string().min(1),
@@ -48,8 +64,10 @@ export const IndependentProjectSchema = z.object({
 
 export const ResumeSchema = z.object({
   name: z.string().min(1),
+  locale: LocaleSchema.optional(),
   title: z.string().min(1),
   contact: ContactDetailsSchema,
+  section_visibility: ResumeSectionVisibilitySchema.optional(),
   professional_experience: z.array(ProfessionalExperienceSchema).min(1),
   education: z.array(EducationSchema).min(1),
   profile_picture: z.string().min(1).optional(),

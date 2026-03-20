@@ -1,79 +1,13 @@
 import React from 'react';
 import { Text, View, StyleSheet, Link, Image } from '@react-pdf/renderer';
-import { tokens } from '@template-core/design-tokens';
+import { useLocale } from '@template-core/locale-context';
 import { getElementVisibility } from '@template-core/section-utils';
 import type { ResumeSchema, ResumeSectionConfig } from '@types';
 
-const { colors, spacing } = tokens.classic;
-
-const styles = StyleSheet.create({
-  // Outer container for profile picture positioning
-  outerContainer: {
-    width: '100%',
-    position: 'relative',
-    marginBottom: spacing.pagePadding,
-  },
-
-  // Profile picture - absolute positioned top-right
-  profileImage: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: spacing.profileImageSize,
-    height: spacing.profileImageSize,
-  },
-
-  // Main header container - centered layout
-  headerContainer: {
-    width: '100%',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
-  },
-
-  // Name styling - larger, centered
-  name: {
-    color: colors.primary,
-    fontSize: 16,
-    fontFamily: 'Lato Bold',
-    textTransform: 'capitalize',
-    marginBottom: 2,
-  },
-
-  // Subtitle/title styling
-  subtitle: {
-    color: colors.darkGray,
-    fontSize: 10,
-    fontFamily: 'Lato',
-    marginBottom: 4,
-  },
-
-  // Contact line styling - centered
-  contactLine: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    fontSize: 9,
-    fontFamily: 'Lato',
-    color: colors.darkGray,
-    justifyContent: 'center',
-  },
-
-  contactItem: {
-    marginHorizontal: 2,
-  },
-
-  contactSeparator: {
-    marginHorizontal: 2,
-  },
-
-  contactLink: {
-    color: colors.darkGray,
-    textDecoration: 'none',
-  },
-});
-
 const Header = ({ resume, section }: { resume: ResumeSchema; section?: ResumeSectionConfig }) => {
+  const { locale, tokens } = useLocale();
+  const { spacing } = tokens;
+  const styles = createStyles(tokens, locale);
   const { name, title, contact } = resume;
 
   // Check element-level visibility for profile picture
@@ -161,3 +95,63 @@ const Header = ({ resume, section }: { resume: ResumeSchema; section?: ResumeSec
 };
 
 export default Header;
+
+const createStyles = (
+  currentTokens: ReturnType<typeof useLocale>['tokens'],
+  locale: ReturnType<typeof useLocale>['locale'],
+) => {
+  const { colors, spacing, typography } = currentTokens;
+
+  return StyleSheet.create({
+    outerContainer: {
+      width: '100%',
+      position: 'relative',
+      marginBottom: spacing.pagePadding,
+    },
+    profileImage: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      width: spacing.profileImageSize,
+      height: spacing.profileImageSize,
+    },
+    headerContainer: {
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+    },
+    name: {
+      color: colors.primary,
+      fontSize: 16,
+      fontFamily: typography.fonts.bold,
+      textTransform: locale === 'zh' ? 'none' : 'capitalize',
+      marginBottom: 2,
+    },
+    subtitle: {
+      color: colors.darkGray,
+      fontSize: typography.text.size,
+      fontFamily: typography.fonts.regular,
+      marginBottom: 4,
+    },
+    contactLine: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      fontSize: typography.small.fontSize,
+      fontFamily: typography.fonts.regular,
+      color: colors.darkGray,
+      justifyContent: 'center',
+    },
+    contactItem: {
+      marginHorizontal: 2,
+    },
+    contactSeparator: {
+      marginHorizontal: 2,
+    },
+    contactLink: {
+      color: colors.darkGray,
+      textDecoration: 'none',
+    },
+  });
+};

@@ -25,6 +25,8 @@ export {
   getElementVisibility,
 } from '@template-core/section-utils';
 
+import { isResumeVisibilityEnabled } from '@template-core/section-utils';
+
 /**
  * Modern template resume section configuration
  * Extends base ResumeSectionConfig with required column property
@@ -60,6 +62,7 @@ export const RESUME_SECTIONS: ModernResumeSectionConfig[] = [
     elements: [
       {
         id: 'profile-picture',
+        visibilityKey: 'profile_picture',
         isVisible: (data) => {
           // Type guard: ensure we're working with ResumeSchema
           if ('profile_picture' in data) {
@@ -77,6 +80,7 @@ export const RESUME_SECTIONS: ModernResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'contact',
+    visibilityKey: 'contact',
     component: Contact,
     column: 'left',
     isVisible: () => true, // Always visible - phone/email are required
@@ -89,8 +93,11 @@ export const RESUME_SECTIONS: ModernResumeSectionConfig[] = [
     component: Skills,
     column: 'left',
     isVisible: (data) => {
-      const hasTechnicalExpertise = (data.technical_expertise?.length ?? 0) > 0;
-      const hasSoftSkills = (data.skills?.length ?? 0) > 0;
+      const hasTechnicalExpertise =
+        isResumeVisibilityEnabled(data, 'technical_expertise') &&
+        (data.technical_expertise?.length ?? 0) > 0;
+      const hasSoftSkills =
+        isResumeVisibilityEnabled(data, 'soft_skills') && (data.skills?.length ?? 0) > 0;
       return hasTechnicalExpertise || hasSoftSkills;
     },
     order: 2,
@@ -99,6 +106,7 @@ export const RESUME_SECTIONS: ModernResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'languages',
+    visibilityKey: 'languages',
     component: Languages,
     column: 'left',
     isVisible: (data) => (data.languages?.length ?? 0) > 0,
@@ -113,8 +121,12 @@ export const RESUME_SECTIONS: ModernResumeSectionConfig[] = [
     component: Experience,
     column: 'right',
     isVisible: (data) => {
-      const hasIndependentProjects = (data.independent_projects?.length ?? 0) > 0;
-      const hasProfessionalExperience = (data.professional_experience?.length ?? 0) > 0;
+      const hasIndependentProjects =
+        isResumeVisibilityEnabled(data, 'independent_projects') &&
+        (data.independent_projects?.length ?? 0) > 0;
+      const hasProfessionalExperience =
+        isResumeVisibilityEnabled(data, 'professional_experience') &&
+        (data.professional_experience?.length ?? 0) > 0;
       return hasIndependentProjects || hasProfessionalExperience;
     },
     order: 4,
@@ -123,6 +135,7 @@ export const RESUME_SECTIONS: ModernResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'education',
+    visibilityKey: 'education',
     component: Education,
     column: 'right',
     isVisible: () => true, // Always visible - required field

@@ -1,21 +1,32 @@
 import React from 'react';
 import { type TailorThemeProps, type ResumeSchema, type CoverLetterSchema } from '@/types';
-import { registerFonts } from '@template-core/fonts-register';
 import { WithPDFWrapper } from '@template-core/with-pdf-wrapper';
 import { Resume, resumeConfig } from './resume';
 import { CoverLetter, coverLetterConfig } from './cover-letter';
 
 // Wrapped Resume component using render prop pattern
-const ResumeDocument = ({ data }: { data?: ResumeSchema }): React.ReactElement => (
+const ResumeDocument = ({
+  data,
+  locale,
+}: {
+  data?: ResumeSchema;
+  locale?: 'en' | 'zh';
+}): React.ReactElement => (
   <WithPDFWrapper data={data} config={resumeConfig}>
-    {(transformedData) => <Resume data={transformedData} />}
+    {(transformedData) => <Resume data={transformedData} locale={locale} />}
   </WithPDFWrapper>
 );
 
 // Wrapped CoverLetter component using render prop pattern
-const CoverLetterDocument = ({ data }: { data?: CoverLetterSchema }): React.ReactElement => (
+const CoverLetterDocument = ({
+  data,
+  locale,
+}: {
+  data?: CoverLetterSchema;
+  locale?: 'en' | 'zh';
+}): React.ReactElement => (
   <WithPDFWrapper data={data} config={coverLetterConfig}>
-    {(transformedData) => <CoverLetter data={transformedData} />}
+    {(transformedData) => <CoverLetter data={transformedData} locale={locale} />}
   </WithPDFWrapper>
 );
 
@@ -29,12 +40,8 @@ const classicTheme: TailorThemeProps = {
     coverLetter: CoverLetterDocument,
   },
   initialize: () => {
-    // Register fonts once at theme level
-    registerFonts();
+    // Font registration must happen after locale is known.
   },
 };
-
-// Initialize theme on module load
-classicTheme.initialize?.();
 
 export default classicTheme;

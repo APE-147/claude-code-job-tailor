@@ -1,56 +1,12 @@
 import React from 'react';
 import { Text, View, StyleSheet } from '@react-pdf/renderer';
-
-import { tokens } from '@template-core/design-tokens';
+import { useLocale } from '@template-core/locale-context';
 import type { ResumeSchema } from '@types';
 
-const { colors, spacing } = tokens.classic;
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.pagePadding,
-  },
-  sectionTitle: {
-    color: colors.primary,
-    fontFamily: 'Lato Bold',
-    fontSize: 11,
-    textTransform: 'uppercase',
-  },
-  educationEntry: {
-    marginBottom: spacing.pagePadding / 2,
-  },
-  educationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 2,
-  },
-  institution: {
-    fontFamily: 'Lato Bold',
-    fontSize: 10,
-    color: colors.primary,
-  },
-  program: {
-    fontFamily: 'Lato',
-    fontSize: 10,
-    color: colors.darkGray,
-    marginBottom: 2,
-  },
-  locationDuration: {
-    fontFamily: 'Lato',
-    fontSize: 10,
-    color: colors.mediumGray,
-    textAlign: 'right',
-  },
-  separator: {
-    width: '100%',
-    borderBottom: `1px solid ${colors.separatorGray}`,
-    paddingTop: spacing.pagePadding / 2,
-    marginBottom: spacing.pagePadding / 2,
-  },
-});
-
 const Education = ({ resume, debug = false }: { resume: ResumeSchema; debug?: boolean }) => {
+  const { labels, locale, tokens } = useLocale();
+  const styles = createStyles(tokens, locale);
+
   // Don't render if education is empty (should be caught by registry, but defensive check)
   if (!resume.education || resume.education.length === 0) {
     return null;
@@ -58,10 +14,8 @@ const Education = ({ resume, debug = false }: { resume: ResumeSchema; debug?: bo
 
   return (
     <View style={styles.container} debug={debug}>
-      {/* Section title */}
-      <Text style={styles.sectionTitle}>EDUCATION</Text>
+      <Text style={styles.sectionTitle}>{labels.education}</Text>
       <View style={styles.separator} />
-      {/* Education entries */}
       {resume.education.map((edu, index) => (
         <View key={index} style={styles.educationEntry}>
           <View style={styles.educationHeader}>
@@ -78,3 +32,54 @@ const Education = ({ resume, debug = false }: { resume: ResumeSchema; debug?: bo
 };
 
 export default Education;
+
+const createStyles = (
+  currentTokens: ReturnType<typeof useLocale>['tokens'],
+  locale: ReturnType<typeof useLocale>['locale'],
+) => {
+  const { colors, spacing, typography } = currentTokens;
+
+  return StyleSheet.create({
+    container: {
+      marginBottom: spacing.pagePadding,
+    },
+    sectionTitle: {
+      color: colors.primary,
+      fontFamily: typography.fonts.bold,
+      fontSize: 11,
+      textTransform: locale === 'zh' ? 'none' : 'uppercase',
+    },
+    educationEntry: {
+      marginBottom: spacing.pagePadding / 2,
+    },
+    educationHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 2,
+    },
+    institution: {
+      fontFamily: typography.fonts.bold,
+      fontSize: typography.text.size,
+      color: colors.primary,
+    },
+    program: {
+      fontFamily: typography.fonts.regular,
+      fontSize: typography.text.size,
+      color: colors.darkGray,
+      marginBottom: 2,
+    },
+    locationDuration: {
+      fontFamily: typography.fonts.regular,
+      fontSize: typography.text.size,
+      color: colors.mediumGray,
+      textAlign: 'right',
+    },
+    separator: {
+      width: '100%',
+      borderBottom: `1px solid ${colors.separatorGray}`,
+      paddingTop: spacing.pagePadding / 2,
+      marginBottom: spacing.pagePadding / 2,
+    },
+  });
+};

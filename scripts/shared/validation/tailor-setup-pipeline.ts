@@ -5,7 +5,8 @@ import { validateCompanyPath } from './company-validation';
 import { chain, chainPipe } from '@shared/core/functional-utils';
 import { generateApplicationData } from '@shared/data/data-generation';
 import { extractMetadata, generateAndWriteTailorContext } from './context-operations';
-import { validateYamlFilesAgainstSchemasPipeline } from './yaml-validation';
+import { validateYamlFilesWithProfilePipeline } from './yaml-validation';
+import { loadOptionalProfile } from '@shared/data/profile-loader';
 
 // Import centralized types
 import type { YamlFilesAndSchemasToWatch, SetContextResult } from './types';
@@ -29,12 +30,23 @@ import type { YamlFilesAndSchemasToWatch, SetContextResult } from './types';
 export const validateAndSetTailorEnvPipeline = (
   environmentName: string,
   yamlDocumentsToValidate: YamlFilesAndSchemasToWatch[],
+  profileRef?: string,
 ): SetContextResult => {
+  const profileResult = loadOptionalProfile(profileRef);
+
+  if (!profileResult.success) {
+    return profileResult;
+  }
+
   return pipe(
     validateCompanyPath(PathHelpers.getCompanyPath(environmentName)),
     (r) =>
       chain(r, () =>
-        validateYamlFilesAgainstSchemasPipeline(environmentName, yamlDocumentsToValidate),
+        validateYamlFilesWithProfilePipeline(
+          environmentName,
+          yamlDocumentsToValidate,
+          profileResult.data,
+        ),
       ),
     (r) =>
       chain(r, (yamlFiles) =>
@@ -43,7 +55,12 @@ export const validateAndSetTailorEnvPipeline = (
           (files) => generateApplicationData(environmentName, files),
           (files) => extractMetadata(files, COMPANY_FILES.METADATA),
           (metadata) =>
-            generateAndWriteTailorContext(environmentName, metadata, PATHS.CONTEXT_FILE),
+            generateAndWriteTailorContext(
+              environmentName,
+              metadata,
+              PATHS.CONTEXT_FILE,
+              profileRef,
+            ),
         ),
       ),
   );

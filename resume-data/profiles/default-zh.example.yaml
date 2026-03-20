@@ -1,0 +1,7 @@
+name: John Doe
+locale: zh
+theme: modern
+contact:
+  phone: '+86 138-0000-0000'
+  email: 'john.doe@example.com'
+  github: 'https://github.com/johndoe-example'
