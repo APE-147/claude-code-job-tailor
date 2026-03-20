@@ -1,4 +1,5 @@
-import { writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
+import path from 'path';
 import yaml from 'js-yaml';
 import type { z } from 'zod';
 import type {
@@ -29,9 +30,11 @@ export const generateContextYaml = (
   companyName: string,
   meta: z.infer<typeof MetadataSchema>,
   timestamp: string,
+  activeProfile?: string,
 ): string => {
   const contextData: TailorContext = {
     active_company: companyName,
+    active_profile: activeProfile,
     company: meta.company,
     folder_path: meta.folder_path,
     available_files: meta.available_files,
@@ -106,6 +109,7 @@ export const generateAndWriteTailorContext = (
   companyName: string,
   metadata: z.infer<typeof MetadataSchema>,
   contextPath: string,
+  activeProfile?: string,
 ): Result<SetContextSuccess['data']> => {
   const ts = new Date().toISOString();
   const metaWithTemplate = {
@@ -113,9 +117,12 @@ export const generateAndWriteTailorContext = (
     active_template: metadata.active_template ?? ('modern' as const),
   };
 
-  const yaml_content = generateContextYaml(companyName, metaWithTemplate, ts);
+  const yaml_content = generateContextYaml(companyName, metaWithTemplate, ts, activeProfile);
   const write = tryCatch(
-    () => writeFileSync(contextPath, yaml_content, 'utf-8'),
+    () => {
+      mkdirSync(path.dirname(contextPath), { recursive: true });
+      writeFileSync(contextPath, yaml_content, 'utf-8');
+    },
     'Failed to write context',
   );
 
@@ -130,6 +137,7 @@ export const generateAndWriteTailorContext = (
           primaryFocus: metadata.primary_focus,
           timestamp: ts,
           activeTemplate: metaWithTemplate.active_template,
+          activeProfile,
         },
       }
     : write;

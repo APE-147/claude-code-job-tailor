@@ -1,35 +1,39 @@
 import React from 'react';
-import { Text, View, StyleSheet } from '@react-pdf/renderer';
-import { tokens } from '@template-core/design-tokens';
+import { View, StyleSheet } from '@react-pdf/renderer';
+import { useLocale } from '@template-core/locale-context';
+import { RichText } from '@template-core/rich-text';
 import type { CoverLetterSchema } from '@types';
 
-const { colors, spacing } = tokens.classic;
-
-const styles = StyleSheet.create({
-  bodyContainer: {
-    flexDirection: 'column',
-    marginBottom: spacing.pagePadding / 2,
-  },
-  paragraph: {
-    fontSize: 10,
-    fontFamily: 'Lato',
-    color: colors.primary,
-    marginBottom: spacing.pagePadding / 3,
-    lineHeight: 1.5,
-  },
-});
-
 const Body = ({ data }: { data: CoverLetterSchema }) => {
+  const { tokens } = useLocale();
+  const styles = createStyles(tokens);
+
   return (
     <View style={styles.bodyContainer}>
-      <Text style={styles.paragraph}>{data.content.opening_line}</Text>
+      <RichText text={data.content.opening_line} style={styles.paragraph} />
       {data.content.body.map((paragraph, index) => (
-        <Text key={index} style={styles.paragraph}>
-          {paragraph}
-        </Text>
+        <RichText key={index} text={paragraph} style={styles.paragraph} />
       ))}
     </View>
   );
 };
 
 export default Body;
+
+const createStyles = (currentTokens: ReturnType<typeof useLocale>['tokens']) => {
+  const { colors, spacing, typography } = currentTokens;
+
+  return StyleSheet.create({
+    bodyContainer: {
+      flexDirection: 'column',
+      marginBottom: spacing.pagePadding / 2,
+    },
+    paragraph: {
+      fontSize: typography.text.size,
+      fontFamily: typography.fonts.regular,
+      color: colors.primary,
+      marginBottom: spacing.pagePadding / 3,
+      lineHeight: typography.text.lineHeight,
+    },
+  });
+};

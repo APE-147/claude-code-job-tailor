@@ -13,6 +13,7 @@ import type {
   SuccessResult,
 } from '@shared/validation/types';
 import { generateApplicationDataInMemory } from '@shared/data/data-generation';
+import { loadProfile, mergeProfileIntoApplicationData, mergeProfileIntoLoadedFiles } from '@shared/data/profile-loader';
 import { handlePipelineError } from '@shared/handlers/result-handlers';
 import { chain, tap } from '@shared/core/functional-utils';
 import {
@@ -22,8 +23,12 @@ import {
   type OutputDirectoryContext,
   type GeneratedDocument,
 } from '@shared/document/document-generation';
+import { detectLocale } from '@template-core/i18n';
+import { registerFonts } from '@template-core/fonts-register';
+import type { Profile } from '@/zod/profile-schema';
 
-const USAGE_MESSAGE = 'Usage: bun run save-to-pdf -C company-name [-D resume|cover-letter|both]';
+const USAGE_MESSAGE =
+  'Usage: bun run generate-pdf -C company-name [-P profile-name|path] [-D resume|cover-letter|both]';
 
 // Parse and validate command-line arguments
 const values = parseCliArgs(
@@ -39,6 +44,11 @@ const values = parseCliArgs(
         short: 'D',
         required: false,
       },
+      P: {
+        type: 'string',
+        short: 'P',
+        required: false,
+      },
     },
   },
   loggers.pdf,
@@ -47,6 +57,7 @@ const values = parseCliArgs(
 
 const companyName = validateRequiredArg(values.C, 'Company name', loggers.pdf, USAGE_MESSAGE);
 const documentType = (values.D || DOCUMENT_TYPES.BOTH) as string;
+const profileRef = values.P as string | undefined;
 
 /**
  * Executes the complete PDF generation pipeline using functional composition
@@ -69,8 +80,9 @@ const documentType = (values.D || DOCUMENT_TYPES.BOTH) as string;
 const initPdfGeneration = async (
   companyName: string,
   yamlDocumentsToValidate: YamlFilesAndSchemasToWatch[],
+  profileRef?: string,
 ): Promise<void> => {
-  const result = await executePdfGeneration(companyName, yamlDocumentsToValidate);
+  const result = await executePdfGeneration(companyName, yamlDocumentsToValidate, profileRef);
 
   return match(result)
     .with({ success: true }, ({ data }) => onSuccess(data))
@@ -98,16 +110,34 @@ const initPdfGeneration = async (
 const executePdfGeneration = async (
   companyName: string,
   yamlDocumentsToValidate: YamlFilesAndSchemasToWatch[],
+  profileRef?: string,
 ): Promise<PdfGenerationResult> => {
+  const profileResult = profileRef ? loadProfile(profileRef) : null;
+
+  if (profileResult && !profileResult.success) {
+    return profileResult;
+  }
+
   // Step 1-3: Validation and data generation (synchronous)
-  const dataResult = validateAndGenerateDataPipeline(companyName, yamlDocumentsToValidate);
+  const dataResult = validateAndGenerateDataPipeline(
+    companyName,
+    yamlDocumentsToValidate,
+    profileResult?.data,
+  );
 
   if (!dataResult.success) {
     return dataResult;
   }
 
+  const applicationData =
+    profileResult && profileResult.success
+      ? mergeProfileIntoApplicationData(profileResult.data, dataResult.data)
+      : dataResult.data;
+
+  registerFonts(applicationData.resume.locale ?? detectLocale(applicationData.resume.name, applicationData.resume.title));
+
   // Step 4: Theme selection (synchronous)
-  const themeResult = selectThemeFromMetadata(dataResult.data);
+  const themeResult = selectThemeFromMetadata(applicationData);
 
   if (!themeResult.success) {
     return themeResult;
@@ -145,11 +175,19 @@ const executePdfGeneration = async (
 const validateAndGenerateDataPipeline = (
   companyName: string,
   yamlFilesAndSchemas: YamlFilesAndSchemasToWatch[],
+  profile?: Profile,
 ) => {
   return pipe(
     validateCompanyPath(PathHelpers.getCompanyPath(companyName)),
     (r) =>
-      chain(r, () => validateYamlFilesAgainstSchemasPipeline(companyName, yamlFilesAndSchemas)),
+      chain(r, () =>
+        validateYamlFilesAgainstSchemasPipeline(companyName, yamlFilesAndSchemas, {
+          transformLoadedFiles: (files) => ({
+            success: true,
+            data: profile ? mergeProfileIntoLoadedFiles(profile, files) : files,
+          }),
+        }),
+      ),
     (r) => chain(r, generateApplicationDataInMemory),
     (r) => tap(r, () => loggers.pdf.success('Data validated & generated')),
   );
@@ -266,4 +304,4 @@ const onError = (
 };
 
 // Run pipeline
-await initPdfGeneration(companyName, TAILOR_YAML_FILES_AND_SCHEMAS);
+await initPdfGeneration(companyName, TAILOR_YAML_FILES_AND_SCHEMAS, profileRef);

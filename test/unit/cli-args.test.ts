@@ -99,6 +99,16 @@ describe('CLI Arguments', () => {
       expect(result.document).toBe('resume');
     });
 
+    test('parses profile flag for PDF generation', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (Bun as any).argv = ['bun', 'script.ts', '-C', 'test-company', '-P', 'nathan-zh'];
+      const result = parsePdfArgs();
+
+      expect(result.company).toBe('test-company');
+      expect(result.profile).toBe('nathan-zh');
+      expect(result.document).toBe('both');
+    });
+
     test('defaults document type to "both" when -D not provided', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Bun as any).argv = ['bun', 'script.ts', '-C', 'test-company'];

@@ -123,6 +123,33 @@ describe('Resume Section Registry', () => {
       expect(visibleIds).toContain('skills');
     });
 
+    it('should hide skills section when only soft skills exist but visibility disables them', () => {
+      const data: ResumeSchema = {
+        ...createMinimalResume(),
+        skills: ['Communication', 'Leadership'],
+        section_visibility: {
+          soft_skills: false,
+        },
+      };
+      const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
+
+      expect(visible.map((s) => s.id)).not.toContain('skills');
+    });
+
+    it('should keep skills section visible when technical expertise remains enabled', () => {
+      const data: ResumeSchema = {
+        ...createMinimalResume(),
+        technical_expertise: [{ resume_title: 'Frontend', skills: ['React'] }],
+        skills: ['Communication'],
+        section_visibility: {
+          soft_skills: false,
+        },
+      };
+      const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
+
+      expect(visible.map((s) => s.id)).toContain('skills');
+    });
+
     it('should hide languages section when array is empty', () => {
       const data = createMinimalResume();
       const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
@@ -140,6 +167,19 @@ describe('Resume Section Registry', () => {
       const visibleIds = visible.map((s) => s.id);
 
       expect(visibleIds).toContain('languages');
+    });
+
+    it('should hide languages section when visibility disables it', () => {
+      const data: ResumeSchema = {
+        ...createMinimalResume(),
+        languages: [{ language: 'English', proficiency: 'Native' }],
+        section_visibility: {
+          languages: false,
+        },
+      };
+      const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
+
+      expect(visible.map((s) => s.id)).not.toContain('languages');
     });
 
     it('should return sections in order', () => {

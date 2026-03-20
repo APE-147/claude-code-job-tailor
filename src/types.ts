@@ -1,10 +1,12 @@
 import type { PageSize, Orientation, Bookmark } from '@react-pdf/types';
 import { z } from 'zod';
+import type { Locale } from './templates/shared/i18n';
 
 import {
   ProfessionalExperienceSchema,
   IndependentProjectSchema,
   ResumeSchema as ResumeSchemaZod,
+  ResumeSectionVisibilitySchema as ResumeSectionVisibilitySchemaZod,
   PrimaryAreaSchema,
   JobAnalysisSchema as JobAnalysisSchemaZod,
   CoverLetterSchema as CoverLetterSchemaZod,
@@ -20,6 +22,8 @@ export type JobAnalysisSchema = z.infer<typeof JobAnalysisSchemaZod>;
 export type ProfessionalExperience = z.infer<typeof ProfessionalExperienceSchema>;
 export type IndependentProject = z.infer<typeof IndependentProjectSchema>;
 export type ResumeSchema = z.infer<typeof ResumeSchemaZod>;
+export type ResumeSectionVisibility = z.infer<typeof ResumeSectionVisibilitySchemaZod>;
+export type ResumeVisibilityKey = keyof ResumeSectionVisibility;
 export type PrimaryArea = z.infer<typeof PrimaryAreaSchema>;
 export type CoverLetterSchema = z.infer<typeof CoverLetterSchemaZod>;
 export type JobDetails = z.infer<typeof JobDetailsSchema>;
@@ -43,17 +47,20 @@ export type ReactPDFProps = {
   debug?: boolean;
   dpi?: number;
   bookmark?: Bookmark;
+  locale?: Locale;
   data: ResumeSchema | CoverLetterSchema;
 };
 
 /** Resume component props */
 export type ResumeComponentProps = {
   data?: ResumeSchema;
+  locale?: Locale;
 };
 
 /** Cover letter component props */
 export type CoverLetterComponentProps = {
   data?: CoverLetterSchema;
+  locale?: Locale;
 };
 
 /** Theme component implementation */
@@ -86,6 +93,7 @@ export type Schemas = {
 /** Element-level visibility configuration for granular control within sections */
 export type SectionElementConfig = {
   id: string;
+  visibilityKey?: ResumeVisibilityKey;
   isVisible: (data: ResumeSchema | CoverLetterSchema) => boolean;
 };
 
@@ -102,6 +110,7 @@ export type SectionConfigBase<
 > = {
   documentType: TDocType;
   id: string;
+  visibilityKey?: ResumeVisibilityKey;
   component: React.ComponentType<{ debug?: boolean } & TComponentProps>;
   isVisible: (data: TData) => boolean;
   order: number;

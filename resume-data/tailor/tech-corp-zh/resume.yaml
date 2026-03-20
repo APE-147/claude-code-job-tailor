@@ -1,0 +1,125 @@
+resume:
+  name: "你好 Github，我是 tailor"
+  profile_picture: 'https://i.guim.co.uk/img/media/a23aeb1f7ff20bb80f68852da17743b0e557f8ed/0_224_3504_2102/master/3504.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=9e9a99e479ee60270b69ede4d869b20f'
+  title: '高级前端工程师 | UI/UX 倡导者'
+  summary: '拥有 10 年以上经验的资深 React 工程师，专注于可扩展前端架构和遗留系统现代化改造。精通 TypeScript、现代组件架构和设计系统。曾为数百万用户构建产品架构，在大型跨职能团队中推动技术卓越。'
+
+  contact:
+    phone: '+1 (555) 555-5555'
+    email: 'john.doe@example.com'
+    address: '旧金山，加利福尼亚州 94105'
+    linkedin: 'https://www.linkedin.com/in/johndoe-example'
+    github: 'https://github.com/johndoe-example'
+
+  technical_expertise:
+    - resume_title: '前端开发'
+      skills:
+        - 'React'
+        - 'TypeScript'
+        - 'Next.js'
+        - 'JavaScript (ES6+)'
+        - 'HTML5 & CSS3'
+        - 'Tailwind CSS'
+        - 'Vite'
+        - 'React-PDF'
+    - resume_title: '后端开发'
+      skills:
+        - 'Node.js'
+        - 'Express.js'
+        - 'Python'
+        - 'FastAPI'
+        - 'PostgreSQL'
+        - 'MongoDB'
+        - 'REST APIs'
+        - 'GraphQL'
+    - resume_title: '质量保障与测试'
+      skills:
+        - 'Cypress'
+        - 'Jest'
+        - 'Playwright'
+        - '端到端测试'
+        - 'CI/CD'
+        - '自动化测试'
+        - 'Zod Schema 校验'
+        - 'GitHub Actions'
+    - resume_title: '系统与架构'
+      skills:
+        - '微服务架构'
+        - 'Docker'
+        - 'Kubernetes'
+        - '铁路导向管道模式'
+        - '函数式组合'
+        - 'Result 类型与错误传播'
+
+  skills:
+    - '跨职能团队协作'
+    - '敏捷/Scrum 方法论'
+    - '分析思维'
+    - '模式识别'
+    - '战略规划'
+    - '技术文档编写'
+    - '干系人沟通'
+    - '技术导师与辅导'
+    - '清晰的代码注释'
+
+  languages:
+    - language: '西班牙语'
+      proficiency: '母语'
+    - language: '英语'
+      proficiency: '工作熟练'
+    - language: '德语'
+      proficiency: '工作熟练'
+
+  professional_experience:
+    - company: 'Innovate AI'
+      position: '高级 AI 工程师'
+      location: '旧金山，加州'
+      duration: '2021年7月 - 至今'
+      company_description: '专注于构建下一代 AI 驱动开发者工具的初创公司。'
+      linkedin: 'https://www.linkedin.com/company/example-innovate-ai'
+      achievements:
+        - '使用 React 和 D3.js 构建了复杂的数据可视化仪表盘，展示模型性能指标。'
+        - '主导推动设计系统的采用，确保所有 AI 产品的 UI 一致性。'
+        - '使用 Node.js、React 和 WebSocket 开发了实时日志分析全栈应用。'
+        - '设计并实现了语义搜索功能的 REST API，日处理请求超过 100 万次。'
+
+    - company: 'NextGen Solutions'
+      position: '高级软件工程师'
+      location: '帕洛阿尔托，加州'
+      duration: '2016年6月 - 2021年7月'
+      company_description: '专注于云端企业软件的中型科技公司。'
+      linkedin: 'https://www.linkedin.com/company/example-nextgen'
+      achievements:
+        - '主导将遗留 jQuery 前端迁移到现代 React 和 TypeScript 技术栈。'
+        - '优化 Web 应用性能，加载速度提升 30%，Lighthouse 评分达到 95 分。'
+        - '构建了可复用组件库，被三个不同产品团队采用。'
+        - '从零开始架构并主导开发基于微服务的新平台，使用 Node.js 和 React。'
+
+    - company: 'Web Weavers Inc.'
+      position: '软件工程师'
+      location: '奥斯汀，德州'
+      duration: '2012年8月 - 2016年6月'
+      company_description: '为各类客户构建网站和 Web 应用的数字机构。'
+      linkedin: 'https://www.linkedin.com/company/example-webweavers'
+      achievements:
+        - '将复杂设计稿转化为像素级精确的响应式网页，使用 HTML、CSS 和 JavaScript。'
+        - '与设计师紧密合作，改善用户体验和无障碍访问。'
+        - '使用 MERN 技术栈为客户开发和维护了 15 个以上全栈 Web 应用。'
+
+  independent_projects:
+    - name: 'Claude Code Job Tailor'
+      location: '开源项目'
+      duration: '2025'
+      description: '免费开源的简历优化平台，通过分析职位发布并使用 AI 驱动的内容选择和专业评分生成定制 PDF 简历。'
+      url: 'https://github.com/javiera-vasquez/claude-code-job-tailor'
+      achievements:
+        - '单一数据源 YAML 模型：通过专业匹配评分自动选择成就项，支持 4+ 简历版本。'
+        - '实时开发工作流：实时预览、文件监听、自动校验、协作编辑并即时反馈。'
+        - '加权岗位分析：提取并排序需求（1-10 优先级），结合 AI 候选人匹配评分。'
+      impact: '60 秒内生成 ATS 优化简历，完全免费；通过智能内容选择消除手动定制，帮助开发者以更高匹配度进行战略性求职。'
+
+  education:
+    - institution: '加州理工学院'
+      program: '计算机科学学士'
+      location: '帕萨迪纳，加州'
+      duration: '2008 - 2012'

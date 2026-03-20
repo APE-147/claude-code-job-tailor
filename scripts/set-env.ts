@@ -10,7 +10,7 @@ import { handlePipelineError, handlePipelineSuccess } from '@shared/handlers/res
 
 /**
  * CLI script to set tailor environment context
- * Usage: bun run set-env -C company-name
+ * Usage: bun run set-env -C company-name [-P profile-name|path]
  *
  * This script validates company files, generates application data, and writes
  * the tailor context configuration for PDF generation.
@@ -20,7 +20,7 @@ import { handlePipelineError, handlePipelineSuccess } from '@shared/handlers/res
  * - 1: Failure (validation or processing error)
  */
 
-const USAGE_MESSAGE = 'Usage: bun run set-env -C company-name';
+const USAGE_MESSAGE = 'Usage: bun run set-env -C company-name [-P profile-name|path]';
 
 // Parse and validate command-line arguments
 const values = parseCliArgs(
@@ -31,6 +31,11 @@ const values = parseCliArgs(
         short: 'C',
         required: true,
       },
+      P: {
+        type: 'string',
+        short: 'P',
+        required: false,
+      },
     },
   },
   loggers.setEnv,
@@ -38,6 +43,7 @@ const values = parseCliArgs(
 );
 
 const companyName = validateRequiredArg(values.C, 'Company name', loggers.setEnv, USAGE_MESSAGE);
+const profileRef = values.P as string | undefined;
 
 /**
  * Executes the complete tailor context setup pipeline using functional composition.
@@ -56,8 +62,9 @@ const companyName = validateRequiredArg(values.C, 'Company name', loggers.setEnv
 const initTailorContext = (
   environmentName: string,
   yamlDocumentsToValidate: YamlFilesAndSchemasToWatch[],
+  profileRef?: string,
 ): void => {
-  return pipe(validateAndSetTailorEnvPipeline(environmentName, yamlDocumentsToValidate), (r) =>
+  return pipe(validateAndSetTailorEnvPipeline(environmentName, yamlDocumentsToValidate, profileRef), (r) =>
     match(r)
       .with({ success: true }, ({ data }) => onSuccess(data))
       .with({ success: false }, ({ error, details, originalError, filePath }) =>
@@ -117,4 +124,4 @@ const onError = (
 };
 
 // Run pipeline
-initTailorContext(companyName, TAILOR_YAML_FILES_AND_SCHEMAS);
+initTailorContext(companyName, TAILOR_YAML_FILES_AND_SCHEMAS, profileRef);

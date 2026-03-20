@@ -185,6 +185,19 @@ describe('Classic Resume Section Registry', () => {
       expect(visibleIds).toContain('core-competencies');
     });
 
+    it('should hide core-competencies section when visibility disables soft skills', () => {
+      const data: ResumeSchema = {
+        ...createMinimalResume(),
+        skills: ['Communication', 'Leadership'],
+        section_visibility: {
+          soft_skills: false,
+        },
+      };
+      const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
+
+      expect(visible.map((s) => s.id)).not.toContain('core-competencies');
+    });
+
     it('should hide languages section when languages array is empty', () => {
       const data = createMinimalResume();
       const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
@@ -202,6 +215,19 @@ describe('Classic Resume Section Registry', () => {
       const visibleIds = visible.map((s) => s.id);
 
       expect(visibleIds).toContain('languages');
+    });
+
+    it('should hide languages section when visibility disables it', () => {
+      const data: ResumeSchema = {
+        ...createMinimalResume(),
+        languages: [{ language: 'English', proficiency: 'Native' }],
+        section_visibility: {
+          languages: false,
+        },
+      };
+      const visible = getVisibleResumeSections(RESUME_SECTIONS, data);
+
+      expect(visible.map((s) => s.id)).not.toContain('languages');
     });
 
     it('should hide experience section when both arrays are empty', () => {

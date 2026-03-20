@@ -1,14 +1,14 @@
 import React from 'react';
 import { Page, View, StyleSheet } from '@react-pdf/renderer';
 
-import { tokens } from '@template-core/design-tokens';
+import { getClassicTokens } from '@template-core/design-tokens';
+import { LocaleProvider } from '@template-core/locale-context';
+import { detectLocale, type Locale } from '@template-core/i18n';
 import type { ResumeSchema, ReactPDFProps } from '@types';
 
 // Import section registry and utilities
 import { RESUME_SECTIONS } from './section-registry';
 import { getVisibleResumeSections } from '@template-core/section-utils';
-
-const { colors, spacing, typography } = tokens.classic;
 
 /**
  * Configuration for the Resume document wrapper
@@ -37,47 +37,56 @@ export const Resume = ({
   dpi = 72,
   bookmark,
   data,
+  locale,
 }: ReactPDFProps) => {
   const resumeData = data as ResumeSchema;
+  const resolvedLocale: Locale = locale ?? resumeData.locale ?? detectLocale(resumeData.name, resumeData.title);
+  const currentTokens = getClassicTokens(resolvedLocale);
+  const styles = createStyles(currentTokens);
 
   // Get visible sections organized by order
   const visibleSections = getVisibleResumeSections(RESUME_SECTIONS, resumeData);
 
   return (
-    <Page
-      size={size}
-      orientation={orientation}
-      wrap={wrap}
-      debug={debug}
-      dpi={dpi}
-      bookmark={bookmark}
-      style={styles.page}
-    >
-      {/* Single column layout with dynamic sections */}
-      <View style={styles.container}>
-        {visibleSections.map((section) => {
-          return (
-            <section.component
-              key={section.id}
-              resume={resumeData}
-              debug={debug}
-              section={section}
-            />
-          );
-        })}
-      </View>
-    </Page>
+    <LocaleProvider locale={resolvedLocale} tokens={currentTokens}>
+      <Page
+        size={size}
+        orientation={orientation}
+        wrap={wrap}
+        debug={debug}
+        dpi={dpi}
+        bookmark={bookmark}
+        style={styles.page}
+      >
+        <View style={styles.container}>
+          {visibleSections.map((section) => {
+            return (
+              <section.component
+                key={section.id}
+                resume={resumeData}
+                debug={debug}
+                section={section}
+              />
+            );
+          })}
+        </View>
+      </Page>
+    </LocaleProvider>
   );
 };
 
-const styles = StyleSheet.create({
-  page: {
-    fontFamily: typography.text.fontFamily,
-    padding: spacing.documentPadding,
-    color: colors.darkGray,
-  },
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-  },
-});
+const createStyles = (currentTokens: ReturnType<typeof getClassicTokens>) => {
+  const { colors, spacing, typography } = currentTokens;
+
+  return StyleSheet.create({
+    page: {
+      fontFamily: typography.text.fontFamily,
+      padding: spacing.documentPadding,
+      color: colors.darkGray,
+    },
+    container: {
+      flex: 1,
+      flexDirection: 'column',
+    },
+  });
+};

@@ -1,4 +1,5 @@
 import { COMPANY_FILES, PATHS, PATTERNS } from '@shared/core/config';
+import path from 'path';
 
 /**
  * Path manipulation utilities for company folders and files.
@@ -33,6 +34,50 @@ export const PathHelpers = {
    */
   getCompanyFile: (companyName: string, fileName: keyof typeof COMPANY_FILES): string => {
     return `${PATHS.TAILOR_BASE}/${companyName}/${COMPANY_FILES[fileName]}`;
+  },
+
+  /**
+   * Get path to profiles directory.
+   * @returns {string} Relative path to profiles directory
+   */
+  getProfilesPath: (): string => {
+    return PATHS.PROFILES;
+  },
+
+  /**
+   * Get path to a profile YAML file by name.
+   * @param {string} profileName - Profile name without extension
+   * @returns {string} Relative path to profile file
+   */
+  getProfileFile: (profileName: string): string => {
+    return `${PATHS.PROFILES}/${profileName}.yaml`;
+  },
+
+  /**
+   * Resolve a profile reference into an absolute or relative YAML path.
+   * Bare names resolve into the profiles directory. Paths keep their location.
+   * @param {string} profileRef - Profile name or file path
+   * @returns {string} Resolved profile path
+   */
+  resolveProfilePath: (profileRef: string): string => {
+    if (/[\\/]/.test(profileRef) || profileRef.endsWith('.yaml') || profileRef.endsWith('.yml')) {
+      return path.isAbsolute(profileRef) ? profileRef : path.resolve(profileRef);
+    }
+
+    return PathHelpers.getProfileFile(profileRef);
+  },
+
+  /**
+   * Resolve a profile reference to an absolute filesystem path.
+   * Bare names are resolved relative to the project root.
+   * @param {string} profileRef - Profile name or path
+   * @returns {string} Absolute profile path
+   */
+  getAbsoluteProfilePath: (profileRef: string): string => {
+    const resolvedPath = PathHelpers.resolveProfilePath(profileRef);
+    return path.isAbsolute(resolvedPath)
+      ? resolvedPath
+      : path.join(PathHelpers.getProjectRoot(), resolvedPath);
   },
 
   /**

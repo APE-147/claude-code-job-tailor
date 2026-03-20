@@ -1,71 +1,13 @@
 import React from 'react';
 import { Text, View, StyleSheet, Link } from '@react-pdf/renderer';
-import { tokens } from '@template-core/design-tokens';
+import { RichText } from '@template-core/rich-text';
+import { useLocale } from '@template-core/locale-context';
+import { isResumeVisibilityEnabled } from '@template-core/section-utils';
 import type { ExperienceItem, ResumeSchema } from '@types';
 
-const { colors, spacing } = tokens.modern;
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 0,
-    marginRight: spacing.pagePadding / 3,
-  },
-  sectionTitle: {
-    color: colors.primary,
-    fontFamily: 'Lato Bold',
-    fontSize: 12,
-    marginBottom: spacing.pagePadding / 2,
-  },
-  experienceEntry: {
-    marginBottom: spacing.pagePadding / 2,
-  },
-  companyHeader: {
-    marginBottom: 2,
-  },
-  companyName: {
-    fontFamily: 'Lato Bold',
-    fontSize: 11,
-    color: colors.primary,
-  },
-  positionTitle: {
-    fontFamily: 'Lato Bold',
-    fontSize: 9,
-    color: colors.darkGray,
-    marginBottom: 2,
-  },
-  dateLocation: {
-    fontSize: 9,
-    color: colors.mediumGray,
-    marginBottom: 4,
-  },
-  companyDescription: {
-    fontSize: 9,
-    color: colors.darkGray,
-    marginBottom: 6,
-    lineHeight: 1.33,
-  },
-  achievementItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 2,
-  },
-  bullet: {
-    width: 2,
-    height: 2,
-    backgroundColor: colors.darkGray,
-    borderRadius: 500,
-    marginRight: 6,
-    marginTop: 4,
-    flexShrink: 0,
-  },
-  achievementText: {
-    fontSize: 9,
-    color: colors.darkGray,
-    lineHeight: 1.3,
-  },
-});
-
 const ExperienceEntry = ({ experience, debug }: { experience: ExperienceItem; debug: boolean }) => {
+  const { tokens } = useLocale();
+  const styles = createStyles(tokens);
   const {
     company,
     position,
@@ -107,7 +49,7 @@ const ExperienceEntry = ({ experience, debug }: { experience: ExperienceItem; de
           {achievements.map((achievement: string, index: number) => (
             <View key={index} style={styles.achievementItem}>
               <View style={styles.bullet} />
-              <Text style={styles.achievementText}>{achievement}</Text>
+              <RichText text={achievement} style={styles.achievementText} />
             </View>
           ))}
         </View>
@@ -117,15 +59,24 @@ const ExperienceEntry = ({ experience, debug }: { experience: ExperienceItem; de
 };
 
 const Experience = ({ resume, debug = false }: { resume: ResumeSchema; debug?: boolean }) => {
-  const hasIndependentProjects = resume.independent_projects?.length > 0;
-  const hasProfessionalExperience = resume.professional_experience?.length > 0;
+  const hasIndependentProjects =
+    isResumeVisibilityEnabled(resume, 'independent_projects') &&
+    (resume.independent_projects?.length ?? 0) > 0;
+  const hasProfessionalExperience =
+    isResumeVisibilityEnabled(resume, 'professional_experience') &&
+    (resume.professional_experience?.length ?? 0) > 0;
+  const { labels, tokens } = useLocale();
+  const styles = createStyles(tokens);
+
+  if (!hasIndependentProjects && !hasProfessionalExperience) {
+    return null;
+  }
 
   return (
     <View style={styles.container} debug={debug}>
-      {/* Independent Projects - conditional section */}
       {hasIndependentProjects && (
         <>
-          <Text style={styles.sectionTitle}>Independent Projects</Text>
+          <Text style={styles.sectionTitle}>{labels.independentProjects}</Text>
           {resume.independent_projects.map((experience, index) => (
             <ExperienceEntry
               key={`${experience.name}-${experience.location}-${index}`}
@@ -136,10 +87,9 @@ const Experience = ({ resume, debug = false }: { resume: ResumeSchema; debug?: b
         </>
       )}
 
-      {/* Professional Experience - always render (required in schema) */}
       {hasProfessionalExperience && (
         <>
-          <Text style={styles.sectionTitle}>Professional Experience</Text>
+          <Text style={styles.sectionTitle}>{labels.professionalExperience}</Text>
           {resume.professional_experience.map((experience, index) => (
             <ExperienceEntry
               key={`${experience.company}-${experience.position}-${index}`}
@@ -154,3 +104,70 @@ const Experience = ({ resume, debug = false }: { resume: ResumeSchema; debug?: b
 };
 
 export default Experience;
+
+const createStyles = (currentTokens: ReturnType<typeof useLocale>['tokens']) => {
+  const { colors, spacing, typography } = currentTokens;
+
+  return StyleSheet.create({
+    container: {
+      marginBottom: 0,
+      marginRight: spacing.pagePadding / 3,
+    },
+    sectionTitle: {
+      color: colors.primary,
+      fontFamily: typography.fonts.bold,
+      fontSize: 12,
+      marginBottom: spacing.pagePadding / 2,
+    },
+    experienceEntry: {
+      marginBottom: spacing.pagePadding / 2,
+    },
+    companyHeader: {
+      marginBottom: 2,
+    },
+    companyName: {
+      fontFamily: typography.fonts.bold,
+      fontSize: 11,
+      color: colors.primary,
+    },
+    positionTitle: {
+      fontFamily: typography.fonts.bold,
+      fontSize: 9,
+      color: colors.darkGray,
+      marginBottom: 2,
+    },
+    dateLocation: {
+      fontFamily: typography.fonts.regular,
+      fontSize: 9,
+      color: colors.mediumGray,
+      marginBottom: 4,
+    },
+    companyDescription: {
+      fontFamily: typography.fonts.regular,
+      fontSize: 9,
+      color: colors.darkGray,
+      marginBottom: 6,
+      lineHeight: typography.text.lineHeight,
+    },
+    achievementItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 2,
+    },
+    bullet: {
+      width: 2,
+      height: 2,
+      backgroundColor: colors.darkGray,
+      borderRadius: 500,
+      marginRight: 6,
+      marginTop: 4,
+      flexShrink: 0,
+    },
+    achievementText: {
+      fontFamily: typography.fonts.regular,
+      fontSize: 9,
+      color: colors.darkGray,
+      lineHeight: typography.text.lineHeight,
+    },
+  });
+};

@@ -25,6 +25,8 @@ export {
   getElementVisibility,
 } from '@template-core/section-utils';
 
+import { isResumeVisibilityEnabled } from '@template-core/section-utils';
+
 /**
  * Registry of all available resume sections
  * Sections are rendered in order by the `order` property
@@ -49,6 +51,7 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
     elements: [
       {
         id: 'profile-picture',
+        visibilityKey: 'profile_picture',
         isVisible: (data) => {
           // Type guard: ensure we're working with ResumeSchema
           if ('profile_picture' in data) {
@@ -66,6 +69,7 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'summary',
+    visibilityKey: 'summary',
     component: Summary,
     isVisible: (data) => {
       return (data.summary?.trim().length ?? 0) > 0;
@@ -78,6 +82,7 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'education',
+    visibilityKey: 'education',
     component: Education,
     isVisible: (data) => (data.education?.length ?? 0) > 0,
     order: 2,
@@ -90,8 +95,12 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
     id: 'experience',
     component: Experience,
     isVisible: (data) => {
-      const hasIndependentProjects = (data.independent_projects?.length ?? 0) > 0;
-      const hasProfessionalExperience = (data.professional_experience?.length ?? 0) > 0;
+      const hasIndependentProjects =
+        isResumeVisibilityEnabled(data, 'independent_projects') &&
+        (data.independent_projects?.length ?? 0) > 0;
+      const hasProfessionalExperience =
+        isResumeVisibilityEnabled(data, 'professional_experience') &&
+        (data.professional_experience?.length ?? 0) > 0;
       return hasIndependentProjects || hasProfessionalExperience;
     },
     order: 3,
@@ -102,6 +111,7 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'technical-skills',
+    visibilityKey: 'technical_expertise',
     component: TechnicalSkills,
     isVisible: (data) => (data.technical_expertise?.length ?? 0) > 0,
     order: 4,
@@ -112,6 +122,7 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'languages',
+    visibilityKey: 'languages',
     component: Languages,
     isVisible: (data) => (data.languages?.length ?? 0) > 0,
     order: 5,
@@ -122,6 +133,7 @@ export const RESUME_SECTIONS: ResumeSectionConfig[] = [
   {
     documentType: 'resume',
     id: 'core-competencies',
+    visibilityKey: 'soft_skills',
     component: CoreCompetencies,
     isVisible: (data) => (data.skills?.length ?? 0) > 0,
     order: 6,

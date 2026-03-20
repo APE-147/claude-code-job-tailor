@@ -9,6 +9,8 @@ import { getSidebarWidgets } from './lib/getSidebarWidgets';
 
 import { themes, type ThemeName } from '../templates';
 import applicationData from '../data/application';
+import { detectLocale } from '@template-core/i18n';
+import { registerFonts } from '@template-core/fonts-register';
 
 import '@ui/styles/globals.css';
 
@@ -22,6 +24,12 @@ const App = () => {
     () => getSidebarWidgets(applicationData.metadata, applicationData.job_analysis),
     [applicationData.metadata, applicationData.job_analysis],
   );
+  const resumeLocale = useMemo(
+    () =>
+      applicationData.resume.locale ??
+      detectLocale(applicationData.resume.name, applicationData.resume.title),
+    [],
+  );
 
   // Sync activeTheme with applicationData.metadata.active_template
   useEffect(() => {
@@ -30,6 +38,10 @@ const App = () => {
       setActiveTheme(metadataTheme);
     }
   }, [applicationData.metadata.active_template]);
+
+  useEffect(() => {
+    registerFonts(resumeLocale);
+  }, [resumeLocale]);
 
   const theme = themes[activeTheme];
   const ResumeComponent = theme?.components.resume;
@@ -54,7 +66,9 @@ const App = () => {
                 showToolbar={true}
                 key={`${Date.now()}-${activeTheme}-${activeDocument}`}
               >
-                {ResumeComponent && <ResumeComponent data={applicationData.resume} />}
+                {ResumeComponent && (
+                  <ResumeComponent data={applicationData.resume} locale={resumeLocale} />
+                )}
               </PDFViewer>
             ) : (
               <PDFViewer
@@ -63,7 +77,7 @@ const App = () => {
                 key={`${Date.now()}-${activeTheme}-${activeDocument}`}
               >
                 {CoverLetterComponent && (
-                  <CoverLetterComponent data={applicationData.cover_letter} />
+                  <CoverLetterComponent data={applicationData.cover_letter} locale={resumeLocale} />
                 )}
               </PDFViewer>
             )}

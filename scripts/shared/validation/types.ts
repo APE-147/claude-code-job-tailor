@@ -79,6 +79,7 @@ export type SetContextSuccess = SuccessResult<{
   primaryFocus: string;
   timestamp: string;
   activeTemplate: TemplateTheme;
+  activeProfile?: string;
 }>;
 
 /**

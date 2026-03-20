@@ -1,7 +1,8 @@
 import { test, expect, describe, beforeAll, afterAll } from 'bun:test';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { dump } from 'js-yaml';
+import { createValidApplicationData } from '../helpers/test-utils';
 
 // ============================================================================
 // Test Fixtures
@@ -294,6 +295,117 @@ describe('set-env.ts CLI Integration', () => {
     test('should overwrite existing context file', async () => {
       // Running twice should update the file
       expect(true).toBe(true);
+    });
+  });
+
+  describe('Profile Support', () => {
+    const projectRoot = process.cwd();
+    const generatedDataPath = join(projectRoot, 'src', 'data', 'application.ts');
+    const contextFilePath = join(projectRoot, '.claude', 'tailor-context.yaml');
+    const tempCompany = `set-env-profile-${Date.now()}`;
+    const tempCompanyPath = join(projectRoot, 'resume-data', 'tailor', tempCompany);
+    const tempProfileName = `set-env-profile-${Date.now()}`;
+    const tempProfilePath = join(projectRoot, 'resume-data', 'profiles', `${tempProfileName}.yaml`);
+    const originalGeneratedData = existsSync(generatedDataPath)
+      ? readFileSync(generatedDataPath, 'utf-8')
+      : null;
+    const originalContextFile = existsSync(contextFilePath)
+      ? readFileSync(contextFilePath, 'utf-8')
+      : null;
+
+    beforeAll(() => {
+      mkdirSync(tempCompanyPath, { recursive: true });
+
+      const data = createValidApplicationData();
+      data.metadata.company = tempCompany;
+      data.metadata.folder_path = `resume-data/tailor/${tempCompany}`;
+      delete (data.metadata as Record<string, unknown>).active_template;
+      data.cover_letter.company = tempCompany;
+      data.resume.name = 'Preview Profile Candidate';
+      data.resume.title = 'Platform Engineer';
+      data.resume.contact = {} as never;
+      data.cover_letter.personal_info = {} as never;
+
+      writeFileSync(join(tempCompanyPath, 'metadata.yaml'), dump(data.metadata), 'utf-8');
+      writeFileSync(
+        join(tempCompanyPath, 'job_analysis.yaml'),
+        dump({ job_analysis: data.job_analysis }),
+        'utf-8',
+      );
+      writeFileSync(join(tempCompanyPath, 'resume.yaml'), dump({ resume: data.resume }), 'utf-8');
+      writeFileSync(
+        join(tempCompanyPath, 'cover_letter.yaml'),
+        dump({ cover_letter: data.cover_letter }),
+        'utf-8',
+      );
+
+      writeFileSync(
+        tempProfilePath,
+        dump({
+          name: 'Nathan',
+          locale: 'zh',
+          theme: 'classic',
+          contact: {
+            phone: '+86 15605769562',
+            email: 'nathan_jobs@fastmail.com',
+            github: 'https://github.com/APE-147',
+          },
+          default_sections: {
+            profile_picture: false,
+            languages: false,
+            soft_skills: false,
+          },
+        }),
+        'utf-8',
+      );
+    });
+
+    afterAll(() => {
+      rmSync(tempCompanyPath, { recursive: true, force: true });
+      rmSync(tempProfilePath, { force: true });
+
+      if (originalGeneratedData === null) {
+        rmSync(generatedDataPath, { force: true });
+      } else {
+        writeFileSync(generatedDataPath, originalGeneratedData, 'utf-8');
+      }
+
+      if (originalContextFile === null) {
+        rmSync(contextFilePath, { force: true });
+      } else {
+        writeFileSync(contextFilePath, originalContextFile, 'utf-8');
+      }
+    });
+
+    test('set-env merges profile into generated application data and context', async () => {
+      const proc = Bun.spawn(
+        ['bun', 'run', 'set-env', '-C', tempCompany, '-P', tempProfileName],
+        {
+          cwd: projectRoot,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        },
+      );
+
+      const exitCode = await proc.exited;
+      const stdout = await new Response(proc.stdout).text();
+      const stderr = await new Response(proc.stderr).text();
+
+      expect(exitCode).toBe(0);
+      expect(`${stdout}${stderr}`).toContain('Tailor context created');
+
+      const generatedData = readFileSync(generatedDataPath, 'utf-8');
+      expect(generatedData).toContain('"active_template": "classic"');
+      expect(generatedData).toContain('"locale": "zh"');
+      expect(generatedData).toContain('"phone": "+86 15605769562"');
+      expect(generatedData).toContain('"email": "nathan_jobs@fastmail.com"');
+      expect(generatedData).toContain('"section_visibility": {');
+      expect(generatedData).toContain('"profile_picture": false');
+      expect(generatedData).toContain('"languages": false');
+      expect(generatedData).toContain('"soft_skills": false');
+
+      const contextYaml = readFileSync(contextFilePath, 'utf-8');
+      expect(contextYaml).toContain(`active_profile: ${tempProfileName}`);
+      expect(contextYaml).toContain('active_template: classic');
     });
   });
 });

@@ -3,9 +3,17 @@ import { PathHelpers } from '@shared/core/path-helpers';
 import { validateFilePathsExists } from './company-validation';
 import { loadYamlFilesFromPath, validateYamlFileAgainstZodSchema } from './yaml-operations';
 import { chainPipe } from '@shared/core/functional-utils';
+import { mergeProfileIntoLoadedFiles } from '@shared/data/profile-loader';
+import type { Profile } from '@/zod/profile-schema';
 
 // Import centralized types
 import type { Result, FileToValidateWithYamlData, YamlFilesAndSchemasToWatch } from './types';
+
+type ValidationPipelineOptions = {
+  transformLoadedFiles?: (
+    files: FileToValidateWithYamlData[],
+  ) => Result<FileToValidateWithYamlData[]>;
+};
 
 /**
  * Validates YAML files against their associated Zod schemas using functional pipeline.
@@ -23,6 +31,7 @@ import type { Result, FileToValidateWithYamlData, YamlFilesAndSchemasToWatch } f
 export const validateYamlFilesAgainstSchemasPipeline = (
   companyName: string,
   filesAndSchemas: YamlFilesAndSchemasToWatch[],
+  options?: ValidationPipelineOptions,
 ): Result<FileToValidateWithYamlData[]> =>
   chainPipe(
     filesAndSchemas.map(({ key, fileName, type, wrapperKey }) => ({
@@ -33,8 +42,22 @@ export const validateYamlFilesAgainstSchemasPipeline = (
     })),
     validateFilePathsExists,
     loadYamlFilesFromPath,
+    (files) =>
+      options?.transformLoadedFiles ? options.transformLoadedFiles(files) : { success: true, data: files },
     validateYamlFileAgainstZodSchema,
   );
+
+export const validateYamlFilesWithProfilePipeline = (
+  companyName: string,
+  filesAndSchemas: YamlFilesAndSchemasToWatch[],
+  profile?: Profile | null,
+): Result<FileToValidateWithYamlData[]> =>
+  validateYamlFilesAgainstSchemasPipeline(companyName, filesAndSchemas, {
+    transformLoadedFiles: (files) => ({
+      success: true,
+      data: profile ? mergeProfileIntoLoadedFiles(profile, files) : files,
+    }),
+  });
 
 /**
  * Formats Zod validation error into human-readable multi-line string.

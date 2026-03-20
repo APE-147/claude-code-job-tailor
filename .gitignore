@@ -5,6 +5,7 @@ node_modules
 out
 dist
 tmp/
+archive/
 docs/
 *.tgz
 
@@ -24,6 +25,13 @@ logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
+# profiles (contain personal data - copy from .example.yaml)
+resume-data/profiles/*.yaml
+!resume-data/profiles/*.example.yaml
+
+# dev notes
+todos/
+
 # dotenv environment variable files
 .env
 .env.development.local
@@ -41,4 +49,3 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
-

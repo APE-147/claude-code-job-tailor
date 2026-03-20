@@ -1,0 +1,37 @@
+version: '2.0.0'
+analysis_date: '2025-10-01'
+
+job_focus:
+  - primary_area: 'senior_engineer'
+    specialties: ['react', 'typescript', 'frontend']
+    weight: 0.8
+  - primary_area: 'senior_engineer'
+    specialties: ['mobile', 'react']
+    weight: 0.2
+
+cover_letter:
+  name: 'John Doe'
+  company: 'Tech-Corp'
+  position: '高级前端工程师 - Web'
+  primary_focus: 'senior_engineer'
+  date: '2025-10-27'
+
+  personal_info:
+    address: '旧金山，加利福尼亚州 94105'
+    email: 'john.doe@example.com'
+    phone: '+1 (555) 555-5555'
+    linkedin: 'https://www.linkedin.com/in/johndoe-example'
+    github: 'https://github.com/johndoe-example'
+
+  content:
+    letter_title: '求职信 高级前端工程师'
+    opening_line: '尊敬的 Tech-Corp 招聘团队：'
+    body:
+      - '我怀着极大的热情申请 Tech-Corp 高级前端工程师 - Web 职位。凭借十年专注于使用 React 和 TypeScript 构建高质量、以用户为中心的前端应用经验，我非常期待加入贵团队。'
+      - '我在 React、TypeScript 和现代 UI/UX 方面的专业能力与贵司构建可扩展 Web 服务的需求高度契合。在 NextGen Solutions，我主导将遗留前端迁移到现代 React 和 TypeScript 技术栈，性能提升 30%，代码库更易维护，目前服务数千企业用户。我还构建了可复用组件库，被三个产品团队采用，展现了我构建结构良好的前端应用的能力。'
+      - '最令我兴奋的是能在全球规模上参与现代 React 产品开发——服务覆盖 30 个国家 500 座城市的 2000 万用户。在 Innovate AI，我推动了设计系统的采用，确保所有产品的 UI 一致性，并使用 React 和 D3.js 创建了复杂的数据可视化仪表盘——这些经验可直接应用于跨职能团队中构建可扩展的用户端应用。'
+      - '除技术能力外，我善于在协作环境中工作，职业生涯中始终与跨职能团队紧密合作。我的国际经历和西班牙语、英语、德语的流利能力增强了我与多元化团队合作的能力。我务实、好奇，保持积极态度，并对项目从构思到交付全程负责。'
+      - '感谢您考虑我的申请。我期待将 React 和 TypeScript 专业能力带到 Tech-Corp，为贵司全球用户打造卓越的 Web 体验。'
+    signature: |
+      此致敬礼，
+      John Doe
